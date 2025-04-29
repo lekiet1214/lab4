@@ -12,7 +12,8 @@ This project demonstrates how to build a real-time machine learning pipeline usi
 
 ```
 .
-├── producer.py           # Kafka producer: sends fake data
+├── generate_data.py      # Simulates data stream by saving JSON files
+├── producer.py           # Reads from folder and sends to Kafka
 ├── consumer_spark.py     # Spark Structured Streaming consumer
 └── README.md             # Project documentation
 ```
@@ -21,7 +22,8 @@ This project demonstrates how to build a real-time machine learning pipeline usi
 
 ## Requirements
 > [!NOTE]
-> This project was built on ubuntu 22.04
+> This project was built on Ubuntu server 22.04
+
 - Python 3.8+
 - Apache Kafka
 - Apache Spark 3.5.x with Scala 2.12
@@ -39,8 +41,10 @@ pip install pyspark kafka-python
 ## Getting Started
 
 ### 1. Start Kafka and Zookeeper
+
 > [!NOTE]
-> Note that Kafka server and Zookeeper must be run at the same time, in two different terminal and kept running throughout entire training.
+> Kafka server and Zookeeper must be run in two different terminal and kept running throught entire training process.
+
 ```bash
 # Start Zookeeper
 bin/zookeeper-server-start.sh config/zookeeper.properties
@@ -57,19 +61,31 @@ bin/kafka-topics.sh --create --topic ml-topic --bootstrap-server localhost:9092 
 
 ---
 
-### 2. Start the Kafka Producer
+### 2. Generate JSON Data Files
 
 In one terminal, run:
+
+```bash
+python generate_data.py
+```
+
+This script will generate new JSON files continuously to a local folder named `stream_data`.
+
+---
+
+### 3. Start the Kafka Producer
+
+In another terminal, run:
 
 ```bash
 python producer.py
 ```
 
-This script will send random JSON records every second to the `ml-topic`.
+This script reads new JSON files from the `stream_data` folder and sends them to the `ml-topic` Kafka topic.
 
 ---
 
-### 3. Start the Spark Structured Streaming Consumer
+### 4. Start the Spark Structured Streaming Consumer
 
 In another terminal, run:
 
@@ -87,9 +103,10 @@ Each message is a JSON object like:
 
 ```json
 {
-  "feature1": DoubleType,
-  "feature2": DoubleType,
-  "label": IntegerType (1 or 0)
+  "feature1": 0.57,
+  "feature2": 0.19,
+  "label": 1
 }
 ```
+
 
